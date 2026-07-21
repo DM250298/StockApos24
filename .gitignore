@@ -1,0 +1,27 @@
+# dependencias
+/node_modules
+/.pnp
+.pnp.js
+
+# next
+/.next/
+/out/
+next-env.d.ts
+
+# produccion
+/build
+
+# entorno (NUNCA subir claves)
+.env
+.env*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# sistema
+.DS_Store
+Thumbs.db
+*.pem
+.vercel

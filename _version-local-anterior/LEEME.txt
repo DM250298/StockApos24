@@ -1,0 +1,76 @@
+====================================================================
+  SISTEMA DE CONTROL DE STOCK - CONSULTORIO ODONTOLOGICO
+  Guia rapida
+====================================================================
+
+--------------------------------------------------------------------
+COMO PRENDER EL SISTEMA (en la computadora del consultorio)
+--------------------------------------------------------------------
+1. Hace doble clic en el archivo  INICIAR.bat
+2. Se abre una ventana negra (NO la cierres) y despues el navegador
+   con el sistema.
+3. Para APAGAR el sistema: cerra la ventana negra.
+
+La primera vez, Windows puede preguntar si permitis que Node acceda
+a la red: elegi "Permitir acceso" (asi entran los celulares).
+
+--------------------------------------------------------------------
+COMO ENTRAR DESDE EL CELULAR (los 4 profesionales)
+--------------------------------------------------------------------
+- El celular tiene que estar en el MISMO WIFI que la computadora.
+- Cuando prendes el sistema, la ventana negra muestra una direccion
+  parecida a:   http://192.168.0.15:4321
+- Escribi esa direccion en el navegador del celular.
+- Consejo: guardala como acceso directo en la pantalla de inicio.
+
+(La direccion puede cambiar si se reinicia el router. Si un dia no
+ entra, volve a mirar la que aparece en la ventana negra.)
+
+--------------------------------------------------------------------
+COMO SE USA (rutina)
+--------------------------------------------------------------------
+DIARIO (cada profesional, antes de irse):
+  - Boton "Registrar" -> toca el tratamiento que hizo. Listo.
+  - Si vacio un frasco/jeringa: marcarlo en "Registrar".
+  - Si se rompio un instrumento o se descarto una fresa/lima:
+    marcarlo (queda anotado para reponer).
+
+SEMANAL (despues quincenal) - una persona fija:
+  - Boton "Conteo" -> recorre cajon por cajon y anota lo que hay
+    DE VERDAD. El sistema corrige solo y muestra los desvios.
+
+MENSUAL - la misma persona:
+  - Boton "Pedido" -> el sistema arma la lista para la clinica.
+    Se imprime o se copia como texto.
+
+--------------------------------------------------------------------
+CARGAR LOS DATOS REALES (reemplazar los de ejemplo)
+--------------------------------------------------------------------
+El sistema viene con datos de EJEMPLO para que se entienda.
+Para poner los reales, entra a "Mas":
+  - Insumos: la lista real (con familia A/B, unidad, minimo, cajon).
+  - Tratamientos: los que se hacen y su receta.
+  - Instrumental: dotacion actual y objetivo.
+  - Configuracion: nombres de profesionales y cajones.
+
+Familias:
+  A = discreto (se cuenta de a uno: guantes, agujas, carpules...)
+  B = granel  (se cuenta por envase: resina, hipoclorito...)
+  C = instrumental (no se consume: espejos, pinzas...)
+
+--------------------------------------------------------------------
+LOS DATOS Y LOS BACKUPS
+--------------------------------------------------------------------
+- Todo se guarda en la carpeta  data\db.json
+- Cada dia se hace una copia de seguridad automatica en  data\backups
+- Para respaldar todo: copia la carpeta  data  a un pendrive o la nube.
+- Para pasar el sistema a otra compu: copia toda la carpeta.
+
+--------------------------------------------------------------------
+SI ALGO NO ANDA
+--------------------------------------------------------------------
+- No abre nada: fijate que este instalado Node.js (node --version).
+- No entra el celular: revisa que sea el mismo wifi y la direccion
+  correcta de la ventana negra. El firewall de Windows debe permitir
+  a Node.
+====================================================================

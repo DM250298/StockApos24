@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0e7c86">
+  <title>Stock — Consultorio Odontológico</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦷</text></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">🦷 <span id="brandName">Stock Consultorio</span></div>
+      <button class="whoami" id="whoamiBtn">👤 <span id="whoamiName">Elegir</span></button>
+    </div>
+  </header>
+
+  <main id="view" class="view"><!-- Las vistas se renderizan acá --></main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab" data-view="inicio">🏠<span>Inicio</span></button>
+    <button class="tab" data-view="registro">✍️<span>Registrar</span></button>
+    <button class="tab" data-view="conteo">📋<span>Conteo</span></button>
+    <button class="tab" data-view="pedido">🛒<span>Pedido</span></button>
+    <button class="tab" data-view="mas">⋯<span>Más</span></button>
+  </nav>
+
+  <!-- Modal genérico -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
