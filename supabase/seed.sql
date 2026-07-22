@@ -37,20 +37,20 @@ insert into insumos (nombre, familia, categoria, unidad, stock_actual, stock_min
   ('Barbijos',                           'A', 'Bioseguridad', 'caja',    8,  3, 'BIO-1', false, false),
   ('Campos descartables',                'A', 'Bioseguridad', 'unidad', 60, 20, 'BIO-1', false, false),
   ('Eyectores',                          'A', 'Bioseguridad', 'unidad', 90, 30, 'BIO-1', false, false),
-  ('Bolsas de esterilización',           'A', 'Bioseguridad', 'unidad',120, 50, 'BIO-1', false, false),
+  ('Bolsas de esterilización (pouch)',           'A', 'Bioseguridad', 'unidad',120, 50, 'BIO-1', false, false),
   ('Rollos de algodón',                  'A', 'Operatoria',   'unidad',200, 60, 'OP-1',  false, false),
-  ('Agujas cortas',                      'A', 'Anestesia',    'unidad', 45, 20, 'ANE-1', true,  false),
+  ('Agujas cortas (para carpule)',                      'A', 'Anestesia',    'unidad', 45, 20, 'ANE-1', true,  false),
   ('Carpules de anestesia (lidocaína)',  'A', 'Anestesia',    'unidad', 70, 30, 'ANE-1', true,  false),
   ('Matrices',                           'A', 'Operatoria',   'unidad', 40, 15, 'OP-1',  false, false),
   ('Cuñas de madera',                    'A', 'Operatoria',   'unidad', 50, 20, 'OP-1',  false, false),
-  ('Suturas',                            'A', 'Cirugía',      'sobre',  25, 10, 'CIR-1', true,  false),
-  ('Dique de goma',                      'A', 'Endodoncia',   'unidad', 30, 10, 'END-1', false, false),
+  ('Suturas (hilo de sutura)',                            'A', 'Cirugía',      'sobre',  25, 10, 'CIR-1', true,  false),
+  ('Goma dique (dique de goma)',                      'A', 'Endodoncia',   'unidad', 30, 10, 'END-1', false, false),
   ('Limas de endodoncia',                'A', 'Endodoncia',   'unidad', 60, 20, 'END-1', false, true),
   ('Fresas',                             'A', 'Operatoria',   'unidad', 40, 15, 'OP-1',  false, true),
   -- Familia B (por envase)
-  ('Resina compuesta',                   'B', 'Operatoria',   'jeringa',10,  4, 'OP-1',  true,  false),
-  ('Ácido grabador',                     'B', 'Operatoria',   'jeringa', 6,  2, 'OP-1',  true,  false),
-  ('Adhesivo',                           'B', 'Operatoria',   'frasco',  4,  2, 'OP-1',  true,  false),
+  ('Resina (composite)',                   'B', 'Operatoria',   'jeringa',10,  4, 'OP-1',  true,  false),
+  ('Ácido grabador (ácido fosfórico)',                     'B', 'Operatoria',   'jeringa', 6,  2, 'OP-1',  true,  false),
+  ('Adhesivo (bonding)',                           'B', 'Operatoria',   'frasco',  4,  2, 'OP-1',  true,  false),
   ('Hipoclorito de sodio',               'B', 'Endodoncia',   'frasco',  5,  2, 'END-1', true,  false),
   ('Alginato',                           'B', 'Prótesis',     'envase',  3,  1, 'OP-1',  true,  false),
   ('Silicona de impresión',              'B', 'Prótesis',     'envase',  2,  1, 'OP-1',  true,  false),
@@ -59,7 +59,7 @@ insert into insumos (nombre, familia, categoria, unidad, stock_actual, stock_min
 -- Tratamientos
 insert into tratamientos (nombre) values
   ('Consulta / Diagnóstico'),
-  ('Restauración (obturación)'),
+  ('Obturación (arreglo)'),
   ('Endodoncia (conducto)'),
   ('Extracción'),
   ('Limpieza / Profilaxis');
@@ -73,31 +73,31 @@ from (values
   ('Consulta / Diagnóstico', 'Campos descartables', 1),
   ('Consulta / Diagnóstico', 'Eyectores', 1),
 
-  ('Restauración (obturación)', 'Guantes de nitrilo', 1),
-  ('Restauración (obturación)', 'Campos descartables', 1),
-  ('Restauración (obturación)', 'Eyectores', 1),
-  ('Restauración (obturación)', 'Agujas cortas', 1),
-  ('Restauración (obturación)', 'Carpules de anestesia (lidocaína)', 1),
-  ('Restauración (obturación)', 'Matrices', 1),
-  ('Restauración (obturación)', 'Cuñas de madera', 1),
-  ('Restauración (obturación)', 'Fresas', 1),
-  ('Restauración (obturación)', 'Rollos de algodón', 2),
+  ('Obturación (arreglo)', 'Guantes de nitrilo', 1),
+  ('Obturación (arreglo)', 'Campos descartables', 1),
+  ('Obturación (arreglo)', 'Eyectores', 1),
+  ('Obturación (arreglo)', 'Agujas cortas (para carpule)', 1),
+  ('Obturación (arreglo)', 'Carpules de anestesia (lidocaína)', 1),
+  ('Obturación (arreglo)', 'Matrices', 1),
+  ('Obturación (arreglo)', 'Cuñas de madera', 1),
+  ('Obturación (arreglo)', 'Fresas', 1),
+  ('Obturación (arreglo)', 'Rollos de algodón', 2),
 
   ('Endodoncia (conducto)', 'Guantes de nitrilo', 1),
   ('Endodoncia (conducto)', 'Campos descartables', 1),
   ('Endodoncia (conducto)', 'Eyectores', 1),
-  ('Endodoncia (conducto)', 'Agujas cortas', 1),
+  ('Endodoncia (conducto)', 'Agujas cortas (para carpule)', 1),
   ('Endodoncia (conducto)', 'Carpules de anestesia (lidocaína)', 2),
-  ('Endodoncia (conducto)', 'Dique de goma', 1),
+  ('Endodoncia (conducto)', 'Goma dique (dique de goma)', 1),
   ('Endodoncia (conducto)', 'Limas de endodoncia', 3),
   ('Endodoncia (conducto)', 'Rollos de algodón', 2),
 
   ('Extracción', 'Guantes de nitrilo', 1),
   ('Extracción', 'Campos descartables', 1),
   ('Extracción', 'Eyectores', 1),
-  ('Extracción', 'Agujas cortas', 1),
+  ('Extracción', 'Agujas cortas (para carpule)', 1),
   ('Extracción', 'Carpules de anestesia (lidocaína)', 2),
-  ('Extracción', 'Suturas', 1),
+  ('Extracción', 'Suturas (hilo de sutura)', 1),
 
   ('Limpieza / Profilaxis', 'Guantes de nitrilo', 1),
   ('Limpieza / Profilaxis', 'Barbijos', 1),
@@ -122,8 +122,8 @@ insert into vencimientos (insumo_id, lote, fecha_vencimiento)
 select i.id, v.lote, v.fecha
 from (values
   ('Carpules de anestesia (lidocaína)', 'L-2024-A', current_date + 20),
-  ('Resina compuesta',                  'R-8891',   current_date + 300),
-  ('Suturas',                           'S-1120',   current_date - 5),
-  ('Adhesivo',                          'AD-5521',  current_date + 20)
+  ('Resina (composite)',                  'R-8891',   current_date + 300),
+  ('Suturas (hilo de sutura)',                           'S-1120',   current_date - 5),
+  ('Adhesivo (bonding)',                          'AD-5521',  current_date + 20)
 ) as v(insumo, lote, fecha)
 join insumos i on i.nombre = v.insumo;

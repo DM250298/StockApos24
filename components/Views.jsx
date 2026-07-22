@@ -26,7 +26,7 @@ export function InicioView({ ctx }) {
       <div className="hero">
         <div className="hero-greet">Hola{ctx.usuario ? `, ${ctx.usuario}` : ''} 👋</div>
         <div className="hero-date">{fecha}</div>
-        <div className="hero-tag">
+        <div className={`hero-tag ${totalAlertas > 0 ? 'alerta' : ''}`}>
           {totalAlertas > 0
             ? `⚠️ ${totalAlertas} cosa${totalAlertas > 1 ? 's' : ''} para revisar`
             : '✅ Todo en orden'}
@@ -56,18 +56,21 @@ export function InicioView({ ctx }) {
       <div className="section-title">🔴 Bajo mínimo</div>
       <div className="card">
         {a.bajoMinimo.length === 0 && <p className="muted small center" style={{ padding: 12 }}>✅ Todo por encima del mínimo.</p>}
-        {a.bajoMinimo.map((i) => (
+        {a.bajoMinimo.slice(0, 3).map((i) => (
           <div className="alert-item stripe-rojo" key={i.id}>
             <div><div className="nom">{i.nombre}</div><div className="meta"><FamiliaBadge familia={i.familia} /> · 📍 {i.ubicacion || '—'}</div></div>
             <div className="right"><Badge tipo="rojo">{i.stock_actual} / mín {i.stock_minimo}</Badge></div>
           </div>
         ))}
+        {a.bajoMinimo.length > 3 && (
+          <button className="ver-mas" onClick={() => ctx.go('insumos')}>Ver los {a.bajoMinimo.length - 3} restantes →</button>
+        )}
       </div>
 
       <div className="section-title">🟡 Vencimientos (FEFO)</div>
       <div className="card">
         {a.porVencer.length === 0 && <p className="muted small center" style={{ padding: 12 }}>✅ Nada por vencer pronto.</p>}
-        {a.porVencer.map((v) => {
+        {a.porVencer.slice(0, 3).map((v) => {
           const vencido = v.dias < 0;
           return (
             <div className={`alert-item ${vencido ? 'stripe-rojo' : 'stripe-amarillo'}`} key={v.id}>
@@ -76,17 +79,23 @@ export function InicioView({ ctx }) {
             </div>
           );
         })}
+        {a.porVencer.length > 3 && (
+          <button className="ver-mas" onClick={() => ctx.go('vencimientos')}>Ver los {a.porVencer.length - 3} restantes →</button>
+        )}
       </div>
 
       <div className="section-title">🦾 Instrumental bajo objetivo</div>
       <div className="card">
         {a.instrumentalBajo.length === 0 && <p className="muted small center" style={{ padding: 12 }}>✅ Dotación completa.</p>}
-        {a.instrumentalBajo.map((x) => (
+        {a.instrumentalBajo.slice(0, 3).map((x) => (
           <div className="alert-item stripe-rojo" key={x.id}>
-            <div><div className="nom">{x.nombre}</div><div className="meta">Se pide ya: quedaste corta para atender en simultáneo</div></div>
+            <div><div className="nom">{x.nombre}</div><div className="meta">Se pide ya: no te alcanza para atender en simultáneo</div></div>
             <div className="right"><Badge tipo="rojo">{x.dotacion_actual} / obj {x.dotacion_objetivo}</Badge></div>
           </div>
         ))}
+        {a.instrumentalBajo.length > 3 && (
+          <button className="ver-mas" onClick={() => ctx.go('instrumental')}>Ver los {a.instrumentalBajo.length - 3} restantes →</button>
+        )}
       </div>
     </div>
   );
@@ -96,20 +105,25 @@ export function InicioView({ ctx }) {
 // REGISTRO diario
 // ===================================================================
 export function RegistroView({ ctx }) {
+  const [proc, setProc] = useState(null);
   const granel = ctx.db.insumos.filter((i) => i.familia === 'B');
   const descartables = ctx.db.insumos.filter((i) => i.descartable);
 
   async function envase(i) {
     if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
     if (!window.confirm(`¿Marcar un envase de "${i.nombre}" como vaciado? Baja 1 del stock.`)) return;
+    setProc(i.id);
     try { await marcarEnvase(ctx.supabase, { insumoId: i.id, profesional: ctx.usuario }); await ctx.refetch(); ctx.showToast('Envase vaciado ✓'); }
     catch (e) { ctx.showToast(e.message, 'err'); }
+    finally { setProc(null); }
   }
   async function descarte(i) {
     if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
     if (!window.confirm(`¿Descartar una "${i.nombre}"? Baja 1 y va a la lista de reposición.`)) return;
+    setProc(i.id);
     try { await descartarItem(ctx.supabase, { insumoId: i.id, profesional: ctx.usuario, motivo: 'Descartada por uso' }); await ctx.refetch(); ctx.showToast('Descartada y anotada ✓'); }
     catch (e) { ctx.showToast(e.message, 'err'); }
+    finally { setProc(null); }
   }
   function registrar(t) {
     if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
@@ -122,28 +136,45 @@ export function RegistroView({ ctx }) {
       <p className="view-sub">Al terminar el día: elegí el tratamiento y el sistema descuenta solo.</p>
 
       <div className="section-title">Tratamiento que hice</div>
-      <div className="treat-grid">
-        {ctx.db.tratamientos.length === 0 && <p className="muted">No hay tratamientos cargados todavía.</p>}
-        {ctx.db.tratamientos.map((t) => (
-          <button className="treat-btn" key={t.id} onClick={() => registrar(t)}>{t.nombre}</button>
-        ))}
-      </div>
+      {ctx.db.tratamientos.length === 0 ? (
+        <Empty icon="🍳" action={<button className="btn btn-primary" onClick={() => ctx.go('tratamientos')}>＋ Crear un tratamiento</button>}>
+          Todavía no cargaste tratamientos.
+        </Empty>
+      ) : (
+        <div className="treat-grid">
+          {ctx.db.tratamientos.map((t) => (
+            <button className="treat-btn" key={t.id} onClick={() => registrar(t)}>{t.nombre}</button>
+          ))}
+        </div>
+      )}
 
-      <div className="section-title">Marcar envase vaciado (granel)</div>
-      <p className="muted small" style={{ marginTop: -4 }}>Cuando terminás un frasco/jeringa, marcalo acá. Baja 1 del stock.</p>
-      <div className="chips">
-        {granel.map((i) => (
-          <button className="chip" key={i.id} onClick={() => envase(i)}>{i.nombre} <span className="muted">({i.stock_actual})</span></button>
-        ))}
-      </div>
+      {granel.length > 0 && (
+        <>
+          <div className="section-title">Marcar envase vaciado (granel)</div>
+          <p className="muted small" style={{ marginTop: -4 }}>Cuando terminás un frasco/jeringa, marcalo acá. Baja 1 del stock.</p>
+          <div className="chips">
+            {granel.map((i) => (
+              <button className="chip" key={i.id} disabled={proc === i.id} onClick={() => envase(i)}>
+                {i.nombre} <span className="chip-stock">quedan {i.stock_actual}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
-      <div className="section-title">Descartar fresa / lima</div>
-      <p className="muted small" style={{ marginTop: -4 }}>Se descarta por desgaste o fractura. Baja 1 y va a reposición.</p>
-      <div className="chips">
-        {descartables.map((i) => (
-          <button className="chip" key={i.id} onClick={() => descarte(i)}>{i.nombre} <span className="muted">({i.stock_actual})</span></button>
-        ))}
-      </div>
+      {descartables.length > 0 && (
+        <>
+          <div className="section-title">Descartar fresa / lima</div>
+          <p className="muted small" style={{ marginTop: -4 }}>Se descarta por desgaste o fractura. Baja 1 y va a reposición.</p>
+          <div className="chips">
+            {descartables.map((i) => (
+              <button className="chip" key={i.id} disabled={proc === i.id} onClick={() => descarte(i)}>
+                {i.nombre} <span className="chip-stock">quedan {i.stock_actual}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -172,33 +203,43 @@ export function ConteoView({ ctx }) {
   }
 
   const ultimo = ctx.db.conteos[0];
+  const totalItems = ctx.db.insumos.length;
+  const contados = Object.entries(valores).filter(([, v]) => v !== '' && v != null).length;
 
   return (
     <div className="view">
       <h1 className="view-title">Conteo</h1>
-      <p className="view-sub">Recorré cajón por cajón y anotá cuánto hay <b>de verdad</b>. Lo que dejes vacío no se toca.</p>
+      <p className="view-sub">Recorré cajón por cajón y anotá cuánto hay <b>de verdad</b>. Lo que dejes vacío queda igual.</p>
       {ultimo && <p className="muted small">Último conteo: {ultimo.fecha} por {ultimo.persona || '—'}.</p>}
 
       {Object.keys(porCajon).sort().map((cod) => (
         <div key={cod}>
           <div className="section-title">📦 {cod} {cajonNombre[cod] ? `· ${cajonNombre[cod]}` : ''}</div>
           <div className="card">
-            {porCajon[cod].map((i) => (
-              <div className="alert-item" key={i.id}>
-                <div>
-                  <div className="nom">{i.nombre}</div>
-                  <div className="meta">Sistema dice: <b>{i.stock_actual}</b> {i.unidad} · <FamiliaBadge familia={i.familia} /></div>
+            {porCajon[cod].map((i) => {
+              const contada = valores[i.id] != null && valores[i.id] !== '';
+              return (
+                <div className={`alert-item conteo-fila ${contada ? 'contada' : ''}`} key={i.id}>
+                  <div>
+                    <div className="nom">{contada ? '✅ ' : ''}{i.nombre}</div>
+                    <div className="meta">Sistema dice: <b>{i.stock_actual}</b> {i.unidad} · <FamiliaBadge familia={i.familia} /></div>
+                  </div>
+                  <input type="number" inputMode="numeric" placeholder={String(i.stock_actual)} style={{ width: 90 }}
+                    value={valores[i.id] ?? ''} onChange={(e) => setValores({ ...valores, [i.id]: e.target.value })} />
                 </div>
-                <input type="number" inputMode="numeric" placeholder={String(i.stock_actual)} style={{ width: 90 }}
-                  value={valores[i.id] ?? ''} onChange={(e) => setValores({ ...valores, [i.id]: e.target.value })} />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
 
-      <button className="btn btn-primary btn-block btn-lg mt" onClick={guardar}>✓ Guardar conteo y reconciliar</button>
       <div className="spacer" />
+
+      {/* Barra de guardado siempre a mano */}
+      <div className="conteo-guardar">
+        <div className="cg-info">Contaste <b>{contados}</b> de {totalItems}<span className="cg-hint"> · lo vacío queda igual</span></div>
+        <button className="btn btn-primary" onClick={guardar}>✓ Guardar y ajustar</button>
+      </div>
     </div>
   );
 }
@@ -217,13 +258,22 @@ export function PedidoView({ ctx }) {
 
   return (
     <div className="view">
+      {/* Encabezado que aparece solo al imprimir */}
+      <div className="print-head print-only">
+        <img src="/apos24-logo-full.png" alt="APOS24" />
+        <div>
+          <div className="ph-title">Pedido de insumos — Consultorio APOS24</div>
+          <div className="ph-date">Fecha: {p.fecha}</div>
+        </div>
+      </div>
+
       <h1 className="view-title no-print">Pedido del mes</h1>
       <p className="view-sub no-print">Junta lo bajo mínimo + instrumental corto + lo que vence + lo marcado a mano. Se lo pasás a la clínica.</p>
       <div className="card no-print" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" onClick={() => window.print()}>🖨️ Imprimir / PDF</button>
         <button className="btn btn-ghost" onClick={copiar}>📋 Copiar como texto</button>
       </div>
-      <h2 style={{ margin: '16px 0 4px' }}>Pedido — {p.fecha}</h2>
+      <h2 className="no-print" style={{ margin: '16px 0 4px' }}>Pedido — {p.fecha}</h2>
       {p.lineas.length === 0 ? (
         <p className="empty">✅ No hay nada para pedir. Todo en orden.</p>
       ) : (
@@ -251,7 +301,7 @@ export function PedidoView({ ctx }) {
 // ===================================================================
 export function MasView({ ctx }) {
   const items = [
-    ['insumos', '📚', 'Insumos (maestro)', 'Lista de todo, familia, ubicación y mínimo'],
+    ['insumos', '📚', 'Insumos (lista completa)', 'Todo lo que hay, familia, ubicación y mínimo'],
     ['tratamientos', '🍳', 'Tratamientos y recetas', 'Qué descuenta cada tratamiento'],
     ['instrumental', '🦾', 'Instrumental', 'Dotación actual vs. objetivo, roturas'],
     ['vencimientos', '📅', 'Vencimientos', 'Lotes y fechas (FEFO)'],
@@ -281,7 +331,7 @@ export function MasView({ ctx }) {
 // ===================================================================
 export function InsumosView({ ctx }) {
   async function borrarInsumo(i) {
-    if (!window.confirm(`¿Borrar "${i.nombre}" del maestro?`)) return;
+    if (!window.confirm(`¿Borrar "${i.nombre}" de la lista?`)) return;
     try { await borrar(ctx.supabase, 'insumos', i.id); await ctx.refetch(); ctx.showToast('Borrado ✓'); }
     catch (e) { ctx.showToast(e.message, 'err'); }
   }
@@ -289,7 +339,7 @@ export function InsumosView({ ctx }) {
     <div className="view">
       <div className="card-row"><h1 className="view-title" style={{ margin: 0 }}>Insumos</h1>
         <button className="btn btn-primary btn-sm" onClick={() => ctx.openModal({ type: 'insumo', data: {} })}>＋ Nuevo</button></div>
-      <p className="view-sub">El maestro: cuánto hay, dónde está y cuándo se pide.</p>
+      <p className="view-sub">La lista completa: cuánto hay, dónde está y cuándo se pide.</p>
       <div className="tbl-wrap"><table>
         <thead><tr><th>Nombre</th><th>Familia</th><th>Categoría</th><th className="right">Stock</th><th>Unidad</th><th className="right">Mín</th><th>Cajón</th><th>Vence</th><th></th></tr></thead>
         <tbody>
@@ -329,7 +379,7 @@ export function TratamientosView({ ctx }) {
     <div className="view">
       <div className="card-row"><h1 className="view-title" style={{ margin: 0 }}>Tratamientos</h1>
         <button className="btn btn-primary btn-sm" onClick={() => ctx.openModal({ type: 'tratamiento', data: {} })}>＋ Nuevo</button></div>
-      <p className="view-sub">La "receta de cocina": qué insumos discretos descuenta cada tratamiento.</p>
+      <p className="view-sub">La "receta de cocina": qué insumos (por unidad) descuenta cada tratamiento.</p>
       {ctx.db.tratamientos.length === 0 && <Empty icon="🍳">No hay tratamientos.</Empty>}
       {ctx.db.tratamientos.map((t) => {
         const receta = t.receta.map((r) => { const ins = byId[r.insumo_id]; return ins ? `${ins.nombre} ×${r.cantidad}` : ''; }).filter(Boolean).join(' · ');
@@ -485,12 +535,17 @@ export function CartelesView({ ctx }) {
   return (
     <div className="view">
       <h1 className="view-title no-print">Carteles de cajones</h1>
-      <p className="view-sub no-print">Cada cartel dice <b>qué va en ese cajón</b>, sin cantidades (así casi no envejece). Imprimí y pegá adentro de cada cajón.</p>
+      <p className="view-sub no-print">Cada cartel dice <b>qué va en ese cajón</b>, sin cantidades (así casi no se desactualiza). Imprimí y pegá adentro de cada cajón.</p>
       <div className="card no-print"><button className="btn btn-primary" onClick={() => window.print()}>🖨️ Imprimir carteles (uno por hoja)</button></div>
       {codigos.length === 0 ? <Empty icon="🏷️">No hay insumos con ubicación.</Empty> : codigos.map((cod) => (
         <div className="cartel" key={cod}>
-          <h2>{cod}</h2>
-          <div className="codigo">{cajonNombre[cod] || ''}</div>
+          <div className="cartel-head">
+            <div>
+              <h2>{cod}</h2>
+              <div className="codigo">{cajonNombre[cod] || ''}</div>
+            </div>
+            <img className="cartel-logo" src="/apos24-logo-full.png" alt="APOS24" />
+          </div>
           <ul>{porCajon[cod].sort().map((n) => <li key={n}>{n}</li>)}</ul>
         </div>
       ))}

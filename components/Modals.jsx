@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BtnAsync } from '@/components/ui';
 import {
   registrarTratamiento, registrarConteo,
   crear, actualizar, guardarReceta,
@@ -33,7 +34,7 @@ function Wrap({ title, children, onSave, saveLabel = 'Guardar', ctx, canCancel =
       {children}
       <div className="modal-actions">
         {canCancel && <button className="btn btn-ghost" onClick={ctx.closeModal}>Cancelar</button>}
-        {onSave && <button className="btn btn-primary" onClick={onSave}>{saveLabel}</button>}
+        {onSave && <BtnAsync className="btn btn-primary" onClick={onSave}>{saveLabel}</BtnAsync>}
       </div>
     </>
   );
@@ -155,20 +156,20 @@ function ConteoRevisarModal({ ctx, data }) {
       await registrarConteo(ctx.supabase, { persona: ctx.usuario, items });
       ctx.closeModal();
       await ctx.refetch();
-      ctx.showToast('Conteo guardado y stock reconciliado ✓');
+      ctx.showToast('Conteo guardado y stock ajustado ✓');
       ctx.go('inicio');
     } catch (e) { ctx.showToast(e.message, 'err'); }
   }
 
   return (
-    <Wrap title="Revisá el desvío" ctx={ctx} onSave={confirmar} saveLabel="✓ Confirmar">
+    <Wrap title="Revisá las diferencias" ctx={ctx} onSave={confirmar} saveLabel="✓ Confirmar">
       <p className="muted small">
-        El número físico va a pisar al del sistema. Los desvíos muestran consumo real,
-        roturas o cargas olvidadas.
+        El número que contaste va a reemplazar al del sistema. Las diferencias pueden ser
+        por consumo real, roturas o algo que no se registró.
       </p>
       <div className="tbl-wrap mt">
         <table>
-          <thead><tr><th>Insumo</th><th className="right">Sistema</th><th className="right">Físico</th><th className="right">Desvío</th></tr></thead>
+          <thead><tr><th>Insumo</th><th className="right">Sistema</th><th className="right">Contado</th><th className="right">Diferencia</th></tr></thead>
           <tbody>
             {items.map((it) => {
               const ins = byId[it.insumo_id];
@@ -223,7 +224,7 @@ function InsumoModal({ ctx, data }) {
       <div className="field-row">
         <div className="field"><label>Familia</label>
           <select value={f.familia} onChange={(e) => set('familia', e.target.value)}>
-            <option value="A">A · Discreto</option>
+            <option value="A">A · Por unidad</option>
             <option value="B">B · Granel (por envase)</option>
           </select></div>
         <div className="field"><label>Unidad</label>
@@ -283,7 +284,7 @@ function TratamientoModal({ ctx, data }) {
     <Wrap title={`${data.id ? 'Editar' : 'Nuevo'} tratamiento`} ctx={ctx} onSave={guardar}>
       <div className="field"><label>Nombre</label>
         <input value={nombre} onChange={(e) => setNombre(e.target.value)} /></div>
-      <label className="small" style={{ fontWeight: 600 }}>Receta (solo insumos discretos / familia A)</label>
+      <label className="small" style={{ fontWeight: 600 }}>Receta (solo insumos por unidad / familia A)</label>
       <div className="mt">
         {receta.length === 0 && <p className="muted small">Todavía sin insumos.</p>}
         {receta.map((r, idx) => {
