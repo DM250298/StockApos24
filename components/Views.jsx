@@ -10,21 +10,48 @@ import { marcarEnvase, descartarItem, actualizar, borrar, crear } from '@/lib/ac
 // ===================================================================
 export function InicioView({ ctx }) {
   const a = ctx.alertas;
-  const byId = Object.fromEntries(ctx.db.insumos.map((i) => [i.id, i]));
+  const totalAlertas = a.bajoMinimo.length + a.porVencer.length + a.instrumentalBajo.length;
+  const fecha = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const tiles = [
+    { n: a.bajoMinimo.length, l: 'Bajo mínimo', tono: a.bajoMinimo.length ? 'rojo' : 'verde', view: 'insumos' },
+    { n: a.porVencer.length, l: 'Por vencer / vencidos', tono: a.porVencer.length ? 'amarillo' : 'verde', view: 'vencimientos' },
+    { n: a.instrumentalBajo.length, l: 'Instrumental corto', tono: a.instrumentalBajo.length ? 'rojo' : 'verde', view: 'instrumental' },
+    { n: a.reposicionPendiente.length, l: 'En reposición', tono: a.reposicionPendiente.length ? 'orange' : 'teal', view: 'reposicion' },
+  ];
 
   return (
     <div className="view">
-      <h1 className="view-title">Hola{ctx.usuario ? `, ${ctx.usuario}` : ''} 👋</h1>
-      <p className="view-sub">Esto es lo que necesita atención hoy.</p>
-
-      <div className="tiles">
-        <div className={`tile ${a.bajoMinimo.length ? 'tile-rojo' : 'tile-verde'}`}><div className="n">{a.bajoMinimo.length}</div><div className="l">Bajo mínimo</div></div>
-        <div className={`tile ${a.porVencer.length ? 'tile-amarillo' : 'tile-verde'}`}><div className="n">{a.porVencer.length}</div><div className="l">Por vencer / vencidos</div></div>
-        <div className={`tile ${a.instrumentalBajo.length ? 'tile-rojo' : 'tile-verde'}`}><div className="n">{a.instrumentalBajo.length}</div><div className="l">Instrumental corto</div></div>
-        <div className="tile tile-teal"><div className="n">{a.reposicionPendiente.length}</div><div className="l">En lista de reposición</div></div>
+      {/* Hero con identidad APOS24 */}
+      <div className="hero">
+        <div className="hero-greet">Hola{ctx.usuario ? `, ${ctx.usuario}` : ''} 👋</div>
+        <div className="hero-date">{fecha}</div>
+        <div className="hero-tag">
+          {totalAlertas > 0
+            ? `⚠️ ${totalAlertas} cosa${totalAlertas > 1 ? 's' : ''} para revisar`
+            : '✅ Todo en orden'}
+        </div>
       </div>
 
-      <button className="btn btn-primary btn-block btn-lg mt" onClick={() => ctx.go('pedido')}>🛒 Armar el pedido del mes</button>
+      {/* Acciones rápidas */}
+      <div className="quick">
+        <button className="btn btn-primary" onClick={() => ctx.go('registro')}>✍️ Registrar</button>
+        <button className="btn btn-teal-outline" onClick={() => ctx.go('conteo')}>📋 Conteo</button>
+        <button className="btn btn-orange span2" onClick={() => ctx.go('pedido')}>🛒 Armar el pedido del mes</button>
+      </div>
+
+      {/* Resumen */}
+      <div className="section-title">Resumen de hoy</div>
+      <div className="tiles">
+        {tiles.map((t) => (
+          <button className="stat" key={t.l}
+            style={{ textAlign: 'left', cursor: 'pointer', font: 'inherit', width: '100%' }}
+            onClick={() => ctx.go(t.view)}>
+            <div className={`n n-${t.tono}`}>{t.n}</div>
+            <div className="l">{t.l}</div>
+          </button>
+        ))}
+      </div>
 
       <div className="section-title">🔴 Bajo mínimo</div>
       <div className="card">

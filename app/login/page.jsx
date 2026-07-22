@@ -29,8 +29,8 @@ export default function LoginPage() {
   return (
     <div className="login-wrap">
       <form className="login-card" onSubmit={entrar}>
-        <div className="login-logo">🦷</div>
-        <div className="login-title">Stock del Consultorio</div>
+        <img className="login-logo-img" src="/apos24-logo-full.png" alt="APOS24" />
+        <div className="login-title">Control de Stock</div>
         <div className="login-sub">Entrá con la cuenta del consultorio</div>
 
         {error && <div className="login-err">{error}</div>}

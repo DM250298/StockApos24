@@ -110,7 +110,11 @@ export default function AppShell({ userEmail }) {
     <div className="app-body">
       <header className="topbar">
         <div className="topbar-inner">
-          <div className="brand">🦷 {db.config.nombre_consultorio || 'Stock Consultorio'}</div>
+          <div className="brand">
+            <img src="/apos24-logo-full.png" alt="APOS24" />
+            <span className="brand-sep" />
+            <span className="brand-txt">STOCK</span>
+          </div>
           <button className="whoami" onClick={() => openModal({ type: 'usuario', data: {} })}>
             👤 {usuario || 'Elegir'}
           </button>

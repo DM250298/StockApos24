@@ -3,19 +3,23 @@
    ===================================================================== */
 
 :root {
-  --teal: #0e7c86;
-  --teal-dark: #0a5a62;
-  --teal-light: #e6f4f5;
+  /* Identidad APOS24 */
+  --teal: #035d62;
+  --teal-dark: #023f43;
+  --teal-light: #e4efef;
+  --orange: #fc8310;
+  --orange-dark: #e07406;
+  --orange-bg: #fff4e8;
   --rojo: #d64545;
   --rojo-bg: #fdecec;
   --amarillo: #b8860b;
   --amarillo-bg: #fff7e0;
   --verde: #2e7d4f;
   --verde-bg: #e7f5ec;
-  --gris: #667085;
-  --gris-claro: #f2f4f7;
-  --borde: #e4e7ec;
-  --texto: #1a2027;
+  --gris: #64748b;
+  --gris-claro: #f1f5f9;
+  --borde: #e2e8f0;
+  --texto: #334155;
   --bg: #f7f9fa;
   --radio: 14px;
   --sombra: 0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.04);
@@ -33,10 +37,13 @@ body {
 .app-body { padding-bottom: 78px; }
 
 /* ---------- Topbar ---------- */
-.topbar { position: sticky; top: 0; z-index: 20; background: var(--teal); color: #fff; box-shadow: var(--sombra); }
-.topbar-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
-.brand { font-weight: 700; font-size: 17px; }
-.whoami { background: rgba(255,255,255,.18); color: #fff; border: none; padding: 8px 14px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.topbar { position: sticky; top: 0; z-index: 20; background: #fff; color: var(--texto); border-bottom: 1px solid var(--borde); box-shadow: var(--sombra); }
+.topbar-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--teal); }
+.brand img { height: 34px; width: auto; display: block; }
+.brand .brand-sep { width: 1px; height: 22px; background: var(--borde); }
+.brand .brand-txt { font-size: 13px; font-weight: 700; color: var(--gris); letter-spacing: .02em; }
+.whoami { background: var(--teal-light); color: var(--teal-dark); border: none; padding: 8px 14px; border-radius: 999px; font-size: 14px; font-weight: 700; cursor: pointer; }
 
 /* ---------- Vistas ---------- */
 .view { max-width: 900px; margin: 0 auto; padding: 16px; }
@@ -52,12 +59,44 @@ body {
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: var(--radio); padding: 14px 18px; font-size: 16px; font-weight: 600; cursor: pointer; background: var(--gris-claro); color: var(--texto); text-decoration: none; font-family: inherit; }
 .btn-primary { background: var(--teal); color: #fff; }
 .btn-primary:active { background: var(--teal-dark); }
+.btn-orange { background: var(--orange); color: #fff; }
+.btn-orange:active { background: var(--orange-dark); }
+.btn-teal-outline { background: #fff; border: 1.5px solid var(--teal); color: var(--teal); }
 .btn-block { display: flex; width: 100%; }
 .btn-lg { padding: 18px; font-size: 18px; }
 .btn-danger { background: var(--rojo-bg); color: var(--rojo); }
 .btn-ghost { background: transparent; border: 1px solid var(--borde); }
 .btn-sm { padding: 8px 12px; font-size: 14px; border-radius: 10px; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---------- Inicio: hero + acciones + resumen ---------- */
+.hero {
+  background: linear-gradient(135deg, var(--teal) 0%, #04767d 100%);
+  color: #fff; border-radius: 18px; padding: 20px 22px; margin-bottom: 18px;
+  position: relative; overflow: hidden;
+}
+.hero::after {
+  content: ""; position: absolute; right: -30px; top: -30px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(252,131,16,.18);
+}
+.hero-greet { font-size: 23px; font-weight: 800; line-height: 1.15; position: relative; }
+.hero-date { opacity: .92; font-size: 14px; margin-top: 4px; text-transform: capitalize; position: relative; }
+.hero-tag { margin-top: 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.15); padding: 5px 12px; border-radius: 999px; position: relative; }
+
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+.quick .btn { min-height: 56px; }
+.quick .span2 { grid-column: 1 / -1; }
+
+.stat { background: #fff; border: 1px solid var(--borde); border-radius: 14px; padding: 14px 16px; box-shadow: var(--sombra); }
+.stat .n { font-size: 32px; font-weight: 800; line-height: 1; }
+.stat .l { font-size: 13px; color: var(--gris); margin-top: 5px; font-weight: 600; }
+.n-rojo { color: var(--rojo); }
+.n-amarillo { color: var(--amarillo); }
+.n-teal { color: var(--teal); }
+.n-verde { color: var(--verde); }
+.n-orange { color: var(--orange); }
+.stat-alert { border-color: var(--rojo); background: var(--rojo-bg); }
 
 .treat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .treat-btn { background: #fff; border: 2px solid var(--teal-light); border-radius: var(--radio); padding: 22px 16px; font-size: 17px; font-weight: 700; color: var(--teal-dark); cursor: pointer; text-align: center; min-height: 96px; display: flex; align-items: center; justify-content: center; font-family: inherit; }
@@ -153,7 +192,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal); bord
 .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .login-card { background: #fff; border: 1px solid var(--borde); border-radius: 20px; padding: 28px; max-width: 380px; width: 100%; box-shadow: var(--sombra); }
 .login-logo { font-size: 44px; text-align: center; }
-.login-title { font-size: 22px; font-weight: 700; text-align: center; margin: 8px 0 4px; }
+.login-logo-img { display: block; height: 56px; width: auto; margin: 0 auto 4px; }
+.login-title { font-size: 22px; font-weight: 700; text-align: center; margin: 8px 0 4px; color: var(--teal); }
 .login-sub { color: var(--gris); font-size: 14px; text-align: center; margin-bottom: 20px; }
 .login-err { background: var(--rojo-bg); color: var(--rojo); padding: 10px 14px; border-radius: 10px; font-size: 14px; margin-bottom: 14px; }
 
