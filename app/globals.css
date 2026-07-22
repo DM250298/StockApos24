@@ -47,9 +47,9 @@ body {
 
 /* ---------- Vistas ---------- */
 .view { max-width: 900px; margin: 0 auto; padding: 16px; }
-.view-title { font-size: 22px; font-weight: 700; margin: 4px 0 14px; }
+.view-title { font-size: 22px; font-weight: 800; margin: 4px 0 14px; color: var(--teal-dark); }
 .view-sub { color: var(--gris); font-size: 14px; margin: -8px 0 16px; }
-.section-title { font-size: 15px; font-weight: 700; color: var(--gris); text-transform: uppercase; letter-spacing: .04em; margin: 22px 0 10px; }
+.section-title { font-size: 14px; font-weight: 700; color: var(--teal-dark); text-transform: uppercase; letter-spacing: .04em; margin: 22px 0 10px; border-left: 3px solid var(--orange); padding-left: 9px; }
 
 /* ---------- Tarjetas ---------- */
 .card { background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); padding: 16px; margin-bottom: 12px; box-shadow: var(--sombra); }
@@ -162,7 +162,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal); bord
 /* ---------- Modal ---------- */
 .modal-overlay { position: fixed; inset: 0; background: rgba(16,24,40,.5); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
 .modal { background: #fff; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 20px; }
-.modal-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+.modal-title { font-size: 20px; font-weight: 800; margin: 0 0 4px; color: var(--teal-dark); }
 .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
 .modal-actions .btn { flex: 1; }
 @media (min-width: 640px) { .modal-overlay { align-items: center; } .modal { border-radius: 20px; } }
@@ -174,9 +174,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal); bord
 
 /* ---------- Menú "Más" ---------- */
 .menu-list { display: flex; flex-direction: column; gap: 10px; }
-.menu-item { display: flex; align-items: center; gap: 14px; padding: 16px; background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; text-align: left; font-family: inherit; }
-.menu-item .ico { font-size: 24px; }
-.menu-item .desc { font-size: 13px; color: var(--gris); font-weight: 400; }
+.menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #fff; border: 1px solid var(--borde); border-radius: var(--radio); cursor: pointer; font-size: 16px; font-weight: 700; width: 100%; text-align: left; font-family: inherit; color: var(--texto); }
+.menu-item:active { background: var(--teal-light); }
+.menu-item .ico { font-size: 22px; width: 44px; height: 44px; flex: 0 0 44px; display: flex; align-items: center; justify-content: center; background: var(--teal-light); border-radius: 12px; }
+.menu-item .desc { font-size: 13px; color: var(--gris); font-weight: 400; margin-top: 2px; }
 
 .muted { color: var(--gris); }
 .small { font-size: 13px; }

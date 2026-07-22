@@ -100,7 +100,12 @@ export default function AppShell({ userEmail }) {
   };
 
   if (!db || !alertas) {
-    return <div className="empty" style={{ paddingTop: 120 }}><div className="big">🦷</div>Cargando…</div>;
+    return (
+      <div className="empty" style={{ paddingTop: 140 }}>
+        <img src="/apos24-logo-full.png" alt="APOS24" style={{ height: 54, marginBottom: 16 }} />
+        <div className="muted">Cargando…</div>
+      </div>
+    );
   }
 
   const View = VIEWS[view] || InicioView;
