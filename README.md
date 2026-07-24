@@ -39,14 +39,15 @@ git push -u origin main
 
 1. En [supabase.com](https://supabase.com) → **New project**. Elegí nombre, una contraseña de base de datos (guardala) y una región cercana (ej. São Paulo). Esperá 1–2 min a que se cree.
 2. Menú lateral → **SQL Editor** → **New query**.
-3. Abrí el archivo [`supabase/schema.sql`](supabase/schema.sql), copiá **todo**, pegalo y apretá **Run**. Crea las tablas, la seguridad y las funciones.
+3. Abrí el archivo [`supabase/schema.sql`](supabase/schema.sql), copiá **todo**, pegalo y apretá **Run**. Crea las tablas, los usuarios/roles, la seguridad y las funciones. (Es seguro de correr de nuevo: no borra datos.)
 4. Nueva query. Abrí [`supabase/seed.sql`](supabase/seed.sql), copiá todo, pegá y **Run**. Carga los datos de ejemplo.
 
-### Paso 3 — Crear el usuario del consultorio
+### Paso 3 — Crear el usuario administrador
 
 1. Menú lateral → **Authentication** → **Users** → **Add user** → **Create new user**.
-2. Poné un email (ej. `consultorio@tudominio.com`) y una contraseña. **Marcá "Auto Confirm User"** para que quede activo sin verificar el mail. Este es el login que van a compartir los 4.
-3. (Recomendado) **Authentication → Sign In / Providers → Email**: desactivá **"Allow new users to sign up"**. Así nadie más puede crear cuentas.
+2. Poné tu email y una contraseña. **Marcá "Auto Confirm User"** para que quede activo sin verificar el mail.
+3. El **primer** usuario que creás queda automáticamente como **Administrador** (puede todo). A los doctores los agregás después, desde la app (ver más abajo) y quedan como Odontólogo.
+4. (Recomendado) **Authentication → Sign In / Providers → Email**: desactivá **"Allow new users to sign up"**. Así solo vos creás las cuentas.
 
 ### Paso 4 — Copiar las claves de la API
 
@@ -68,18 +69,44 @@ Menú lateral → **Project Settings** → **API**. Anotá:
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | la anon key del Paso 4 |
 
 3. **Deploy**. En ~1 min te da una URL pública (ej. `https://tu-repo.vercel.app`).
-4. Entrá a esa URL, logueate con el usuario del Paso 3. ¡Listo!
+4. Entrá a esa URL, logueate con el usuario administrador del Paso 3. ¡Listo!
 
 > Cada vez que hagas `git push`, Vercel vuelve a deployar solo.
 
 ---
 
+## 👥 Usuarios y permisos
+
+Hay **dos roles**:
+
+| | **Administrador** | **Odontólogo** |
+|---|---|---|
+| Registrar tratamientos, marcar envases/descartes | ✅ | ✅ |
+| Anotar en la lista de reposición | ✅ | ✅ |
+| Ver el tablero de inicio | ✅ | ✅ |
+| Hacer el conteo / reconciliación | ✅ | ❌ |
+| Armar el pedido del mes | ✅ | ❌ |
+| Editar la lista de insumos, tratamientos, instrumental, config | ✅ | ❌ |
+| Gestionar usuarios | ✅ | ❌ |
+
+Los permisos los aplica la **base de datos (RLS)**, no solo la interfaz: aunque un odontólogo intente saltear la app, no puede tocar lo que no le corresponde.
+
+### Cómo darle acceso a cada doctor
+
+1. **Supabase → Authentication → Users → Add user**: creá su email + contraseña (marcá **"Auto Confirm"**).
+2. En la app (como admin) → **Más → Usuarios y permisos**: el doctor aparece como **Odontólogo**. Tocá **Editar** y ponele el nombre (ej. "Dra. Martínez") y el rol.
+3. Pasale a ese doctor su **email y contraseña**. Cada uno entra con lo suyo.
+
+> El primero que hace el conteo y el pedido debería ser **Administrador**; los demás, **Odontólogo**.
+
+---
+
 ## 📱 Cómo lo usan en el consultorio
 
-- **Entrar:** todos usan el mismo email + contraseña del consultorio. Conviene guardar la URL como acceso directo en la pantalla de inicio del celular.
+- **Entrar:** cada doctor con su propio email + contraseña. Conviene guardar la URL como acceso directo en la pantalla de inicio del celular.
 - **Diario (cada profesional):** pestaña **Registrar** → tocar el tratamiento (descuenta la receta solo). Marcar envases de granel vaciados y fresas/limas descartadas.
-- **Semanal → quincenal (una persona):** pestaña **Conteo** → recorrer cajón por cajón y anotar lo real. El sistema reconcilia y muestra desvíos.
-- **Mensual:** pestaña **Pedido** → arma la lista para la clínica (imprimir o copiar).
+- **Semanal → quincenal (el admin):** pestaña **Conteo** → recorrer cajón por cajón y anotar lo real. El sistema ajusta el stock y muestra las diferencias.
+- **Mensual (el admin):** pestaña **Pedido** → arma la lista para la clínica (imprimir o copiar).
 
 ### Cargar los datos reales
 

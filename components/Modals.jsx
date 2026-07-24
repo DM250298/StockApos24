@@ -13,7 +13,8 @@ import {
 export function ModalHost({ modal, ctx }) {
   if (!modal) return null;
   const map = {
-    usuario: UsuarioModal,
+    cuenta: CuentaModal,
+    perfil: PerfilModal,
     registro: RegistroModal,
     conteoRevisar: ConteoRevisarModal,
     insumo: InsumoModal,
@@ -41,27 +42,54 @@ function Wrap({ title, children, onSave, saveLabel = 'Guardar', ctx, canCancel =
 }
 
 // -------------------------------------------------------------------
-// ¿Quién sos?
+// Mi cuenta (nombre, rol, cerrar sesión)
 // -------------------------------------------------------------------
-function UsuarioModal({ ctx, data }) {
+function CuentaModal({ ctx }) {
   return (
     <>
-      <h3 className="modal-title">¿Quién sos?</h3>
-      <p className="muted small">Elegí tu nombre. No hace falta contraseña.</p>
-      <div className="mt">
-        {ctx.db.profesionales.map((p) => (
-          <button key={p.id} className="btn btn-block" style={{ marginBottom: 8 }}
-            onClick={() => { ctx.setUsuario(p.nombre); ctx.closeModal(); }}>
-            {p.nombre}
-          </button>
-        ))}
-      </div>
-      {!data.forzar && (
-        <div className="modal-actions">
-          <button className="btn btn-ghost" onClick={ctx.closeModal}>Cancelar</button>
+      <h3 className="modal-title">Mi cuenta</h3>
+      <div className="card" style={{ boxShadow: 'none' }}>
+        <div className="alert-item"><span className="muted">Nombre</span><b>{ctx.usuario}</b></div>
+        <div className="alert-item"><span className="muted">Rol</span>
+          <span className={`badge ${ctx.esAdmin ? 'badge-C' : 'badge-A'}`}>{ctx.esAdmin ? 'Administrador' : 'Odontólogo'}</span>
         </div>
-      )}
+        <div className="alert-item"><span className="muted">Cuenta</span><span className="small">{ctx.userEmail}</span></div>
+      </div>
+      <div className="modal-actions">
+        <button className="btn btn-ghost" onClick={ctx.closeModal}>Cerrar</button>
+        <button className="btn btn-danger" onClick={ctx.cerrarSesion}>Cerrar sesión</button>
+      </div>
     </>
+  );
+}
+
+// -------------------------------------------------------------------
+// Editar perfil de un usuario (solo admin): nombre visible + rol
+// -------------------------------------------------------------------
+function PerfilModal({ ctx, data }) {
+  const p = ctx.db.perfiles.find((x) => x.id === data.id);
+  const [nombre, setNombre] = useState(p ? p.nombre : '');
+  const [rol, setRol] = useState(p ? p.rol : 'odontologo');
+
+  async function guardar() {
+    if (!nombre.trim()) return ctx.showToast('Poné un nombre.', 'err');
+    try {
+      await actualizar(ctx.supabase, 'perfiles', data.id, { nombre: nombre.trim(), rol });
+      ctx.closeModal(); await ctx.refetch(); ctx.showToast('Perfil guardado ✓');
+    } catch (e) { ctx.showToast(e.message, 'err'); }
+  }
+
+  return (
+    <Wrap title="Editar usuario" ctx={ctx} onSave={guardar}>
+      <p className="muted small">{p ? p.email : ''}</p>
+      <div className="field"><label>Nombre visible</label>
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Dra. Martínez" /></div>
+      <div className="field"><label>Rol</label>
+        <select value={rol} onChange={(e) => setRol(e.target.value)}>
+          <option value="odontologo">Odontólogo (registrar y reposición)</option>
+          <option value="admin">Administrador (puede todo)</option>
+        </select></div>
+    </Wrap>
   );
 }
 

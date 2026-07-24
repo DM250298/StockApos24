@@ -8,7 +8,7 @@ import { ModalHost } from '@/components/Modals';
 import {
   InicioView, RegistroView, ConteoView, PedidoView, MasView,
   InsumosView, TratamientosView, InstrumentalView, VencimientosView,
-  ReposicionView, CartelesView, ConfigView,
+  ReposicionView, CartelesView, ConfigView, UsuariosView,
 } from '@/components/Views';
 
 const VIEWS = {
@@ -16,17 +16,32 @@ const VIEWS = {
   pedido: PedidoView, mas: MasView, insumos: InsumosView,
   tratamientos: TratamientosView, instrumental: InstrumentalView,
   vencimientos: VencimientosView, reposicion: ReposicionView,
-  carteles: CartelesView, config: ConfigView,
+  carteles: CartelesView, config: ConfigView, usuarios: UsuariosView,
 };
 
-const SUBVIEWS = ['insumos', 'tratamientos', 'instrumental', 'vencimientos', 'reposicion', 'carteles', 'config'];
+// Vistas exclusivas del admin (el odontólogo no las puede abrir)
+const ADMIN_ONLY = new Set([
+  'conteo', 'pedido', 'mas', 'insumos', 'tratamientos', 'instrumental',
+  'vencimientos', 'carteles', 'config', 'usuarios',
+]);
 
-const TABS = [
+// Vistas que, para el admin, cuelgan del menú "Más"
+const BAJO_MAS = new Set([
+  'insumos', 'tratamientos', 'instrumental', 'vencimientos',
+  'carteles', 'config', 'usuarios', 'reposicion',
+]);
+
+const TABS_ADMIN = [
   ['inicio', '🏠', 'Inicio'],
   ['registro', '✍️', 'Registrar'],
   ['conteo', '📋', 'Conteo'],
   ['pedido', '🛒', 'Pedido'],
   ['mas', '⋯', 'Más'],
+];
+const TABS_ODONTO = [
+  ['inicio', '🏠', 'Inicio'],
+  ['registro', '✍️', 'Registrar'],
+  ['reposicion', '📝', 'Reposición'],
 ];
 
 export default function AppShell({ userEmail }) {
@@ -34,8 +49,8 @@ export default function AppShell({ userEmail }) {
   const supabase = useMemo(() => createClient(), []);
 
   const [db, setDb] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [view, setView] = useState('inicio');
-  const [usuario, setUsuarioState] = useState(null);
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -47,11 +62,10 @@ export default function AppShell({ userEmail }) {
   }, [supabase]);
   refetchRef.current = refetch;
 
-  // Carga inicial + realtime
+  // Carga inicial + identidad + realtime
   useEffect(() => {
     refetch();
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('usuario') : null;
-    if (saved) setUsuarioState(saved);
+    supabase.auth.getUser().then(({ data }) => setUserId(data?.user?.id || null));
 
     const ch = supabase.channel('stock-realtime');
     TABLAS.forEach((t) => {
@@ -63,25 +77,20 @@ export default function AppShell({ userEmail }) {
     return () => { supabase.removeChannel(ch); };
   }, [supabase, refetch]);
 
-  // Pedir identidad la primera vez
-  useEffect(() => {
-    if (db && !usuario && !modal) {
-      setModal({ type: 'usuario', data: { forzar: true } });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db]);
-
   const alertas = useMemo(() => (db ? calcAlertas(db) : null), [db]);
+
+  const perfil = useMemo(
+    () => (db && userId ? db.perfiles.find((p) => p.id === userId) : null),
+    [db, userId]
+  );
+  const rol = perfil ? perfil.rol : 'odontologo';
+  const esAdmin = rol === 'admin';
+  const usuario = (perfil && perfil.nombre) || userEmail;
 
   const showToast = useCallback((msg, kind = 'ok') => {
     setToast({ msg, kind });
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2600);
-  }, []);
-
-  const setUsuario = useCallback((nombre) => {
-    setUsuarioState(nombre);
-    try { localStorage.setItem('usuario', nombre); } catch {}
   }, []);
 
   const go = useCallback((v) => { setView(v); window.scrollTo(0, 0); }, []);
@@ -95,11 +104,11 @@ export default function AppShell({ userEmail }) {
   }, [supabase, router]);
 
   const ctx = {
-    db, alertas, usuario, userEmail, supabase,
-    refetch, showToast, openModal, closeModal, go, setUsuario, cerrarSesion,
+    db, alertas, usuario, userEmail, userId, rol, esAdmin, supabase,
+    refetch, showToast, openModal, closeModal, go, cerrarSesion,
   };
 
-  if (!db || !alertas) {
+  if (!db || !alertas || !userId) {
     return (
       <div className="empty" style={{ paddingTop: 140 }}>
         <img src="/apos24-logo-full.png" alt="APOS24" style={{ height: 54, marginBottom: 16 }} />
@@ -108,8 +117,10 @@ export default function AppShell({ userEmail }) {
     );
   }
 
-  const View = VIEWS[view] || InicioView;
-  const activeTab = SUBVIEWS.includes(view) ? 'mas' : view;
+  const puedeVer = esAdmin || !ADMIN_ONLY.has(view);
+  const View = puedeVer ? (VIEWS[view] || InicioView) : null;
+  const tabs = esAdmin ? TABS_ADMIN : TABS_ODONTO;
+  const activeTab = esAdmin && BAJO_MAS.has(view) ? 'mas' : view;
 
   return (
     <div className="app-body">
@@ -120,18 +131,20 @@ export default function AppShell({ userEmail }) {
             <span className="brand-sep" />
             <span className="brand-txt">STOCK</span>
           </div>
-          <button className="whoami" onClick={() => openModal({ type: 'usuario', data: {} })}>
-            👤 {usuario || 'Elegir'}
+          <button className="whoami" onClick={() => openModal({ type: 'cuenta' })}>
+            👤 {usuario}{esAdmin ? ' · Admin' : ''}
           </button>
         </div>
       </header>
 
       <main>
-        <View ctx={ctx} />
+        {View ? <View ctx={ctx} /> : (
+          <div className="view"><div className="empty"><div className="big">🔒</div>No tenés permiso para ver esta sección.</div></div>
+        )}
       </main>
 
       <nav className="tabbar">
-        {TABS.map(([v, ico, label]) => (
+        {tabs.map(([v, ico, label]) => (
           <button key={v} className={`tab ${activeTab === v ? 'active' : ''}`} onClick={() => go(v)}>
             {ico}<span>{label}</span>
           </button>

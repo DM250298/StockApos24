@@ -33,11 +33,17 @@ export function InicioView({ ctx }) {
         </div>
       </div>
 
-      {/* Acciones rápidas */}
+      {/* Acciones rápidas (según el rol) */}
       <div className="quick">
         <button className="btn btn-primary" onClick={() => ctx.go('registro')}>✍️ Registrar</button>
-        <button className="btn btn-teal-outline" onClick={() => ctx.go('conteo')}>📋 Conteo</button>
-        <button className="btn btn-orange span2" onClick={() => ctx.go('pedido')}>🛒 Armar el pedido del mes</button>
+        {ctx.esAdmin ? (
+          <>
+            <button className="btn btn-teal-outline" onClick={() => ctx.go('conteo')}>📋 Conteo</button>
+            <button className="btn btn-orange span2" onClick={() => ctx.go('pedido')}>🛒 Armar el pedido del mes</button>
+          </>
+        ) : (
+          <button className="btn btn-teal-outline" onClick={() => ctx.go('reposicion')}>📝 Reposición</button>
+        )}
       </div>
 
       {/* Resumen */}
@@ -110,7 +116,6 @@ export function RegistroView({ ctx }) {
   const descartables = ctx.db.insumos.filter((i) => i.descartable);
 
   async function envase(i) {
-    if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
     if (!window.confirm(`¿Marcar un envase de "${i.nombre}" como vaciado? Baja 1 del stock.`)) return;
     setProc(i.id);
     try { await marcarEnvase(ctx.supabase, { insumoId: i.id, profesional: ctx.usuario }); await ctx.refetch(); ctx.showToast('Envase vaciado ✓'); }
@@ -118,7 +123,6 @@ export function RegistroView({ ctx }) {
     finally { setProc(null); }
   }
   async function descarte(i) {
-    if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
     if (!window.confirm(`¿Descartar una "${i.nombre}"? Baja 1 y va a la lista de reposición.`)) return;
     setProc(i.id);
     try { await descartarItem(ctx.supabase, { insumoId: i.id, profesional: ctx.usuario, motivo: 'Descartada por uso' }); await ctx.refetch(); ctx.showToast('Descartada y anotada ✓'); }
@@ -126,7 +130,6 @@ export function RegistroView({ ctx }) {
     finally { setProc(null); }
   }
   function registrar(t) {
-    if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
     ctx.openModal({ type: 'registro', data: { tratId: t.id } });
   }
 
@@ -193,7 +196,6 @@ export function ConteoView({ ctx }) {
   });
 
   function guardar() {
-    if (!ctx.usuario) return ctx.openModal({ type: 'usuario', data: { forzar: true } });
     const items = [];
     Object.entries(valores).forEach(([id, val]) => {
       if (val !== '' && val != null) items.push({ insumo_id: id, fisico: Number(val) });
@@ -307,7 +309,8 @@ export function MasView({ ctx }) {
     ['vencimientos', '📅', 'Vencimientos', 'Lotes y fechas (FEFO)'],
     ['reposicion', '📝', 'Lista de reposición', 'Lo que se está acabando entre conteos'],
     ['carteles', '🏷️', 'Carteles y mapa de cajones', 'Imprimir lo que va en cada cajón'],
-    ['config', '⚙️', 'Configuración', 'Profesionales, factor de esterilización'],
+    ['usuarios', '👥', 'Usuarios y permisos', 'Nombre y rol de cada doctor'],
+    ['config', '⚙️', 'Configuración', 'Factor de esterilización, cajones'],
   ];
   return (
     <div className="view">
@@ -512,7 +515,7 @@ export function ReposicionView({ ctx }) {
             <div><b>{r.texto}</b> <Badge tipo="gris">{r.tipo}</Badge>
               <div className="muted small">{r.motivo || ''}{r.profesional ? ` · ${r.profesional}` : ''} · {r.fecha}</div>
             </div>
-            <button className="btn btn-sm btn-ghost" onClick={() => resolver(r)}>✓ Listo</button>
+            {ctx.esAdmin && <button className="btn btn-sm btn-ghost" onClick={() => resolver(r)}>✓ Listo</button>}
           </div>
         </div>
       ))}
@@ -562,7 +565,6 @@ export function ConfigView({ ctx }) {
   const [prof, setProf] = useState(c.profesionales_simultaneos ?? 4);
   const [fact, setFact] = useState(c.factor_esterilizacion ?? 2);
   const [dias, setDias] = useState(c.dias_aviso_vencimiento ?? 30);
-  const [profs, setProfs] = useState(ctx.db.profesionales.map((p) => p.nombre).join('\n'));
   const [cajones, setCajones] = useState(ctx.db.cajones.map((x) => `${x.codigo} - ${x.descripcion}`).join('\n'));
 
   async function guardarConfig() {
@@ -574,15 +576,6 @@ export function ConfigView({ ctx }) {
         dias_aviso_vencimiento: Number(dias) || 30,
       }).eq('id', true);
       await ctx.refetch(); ctx.showToast('Configuración guardada ✓');
-    } catch (e) { ctx.showToast(e.message, 'err'); }
-  }
-
-  async function guardarProfs() {
-    const lista = profs.split('\n').map((s) => s.trim()).filter(Boolean);
-    try {
-      await ctx.supabase.from('profesionales').delete().neq('nombre', '__nunca__');
-      if (lista.length) await ctx.supabase.from('profesionales').insert(lista.map((nombre, idx) => ({ nombre, orden: idx + 1 })));
-      await ctx.refetch(); ctx.showToast('Profesionales guardados ✓');
     } catch (e) { ctx.showToast(e.message, 'err'); }
   }
 
@@ -618,18 +611,51 @@ export function ConfigView({ ctx }) {
         <button className="btn btn-primary btn-block" onClick={guardarConfig}>Guardar</button>
       </div>
 
-      <div className="section-title">Profesionales</div>
-      <div className="card">
-        <p className="muted small">Un nombre por línea. Aparecen al elegir "¿Quién sos?".</p>
-        <textarea rows={5} value={profs} onChange={(e) => setProfs(e.target.value)} />
-        <button className="btn btn-primary btn-block mt" onClick={guardarProfs}>Guardar profesionales</button>
-      </div>
-
       <div className="section-title">Cajones</div>
       <div className="card">
         <p className="muted small">Código y descripción, uno por línea, separados por " - " (ej: <b>OP-1 - Operatoria</b>).</p>
         <textarea rows={6} value={cajones} onChange={(e) => setCajones(e.target.value)} />
         <button className="btn btn-primary btn-block mt" onClick={guardarCajones}>Guardar cajones</button>
+      </div>
+    </div>
+  );
+}
+
+// ===================================================================
+// USUARIOS Y PERMISOS (solo admin)
+// ===================================================================
+export function UsuariosView({ ctx }) {
+  const perfiles = [...ctx.db.perfiles].sort((a, b) => {
+    if (a.rol !== b.rol) return a.rol === 'admin' ? -1 : 1;
+    return (a.nombre || '').localeCompare(b.nombre || '');
+  });
+
+  return (
+    <div className="view">
+      <h1 className="view-title">Usuarios y permisos</h1>
+      <p className="view-sub">Cada doctor entra con su propio usuario. Acá le ponés el <b>nombre visible</b> y el <b>rol</b>.</p>
+
+      {perfiles.length === 0 && <Empty icon="👥">Todavía no hay usuarios.</Empty>}
+      {perfiles.map((p) => (
+        <div className="card" key={p.id}>
+          <div className="card-row">
+            <div>
+              <b>{p.nombre}</b>{' '}
+              <Badge tipo={p.rol === 'admin' ? 'C' : 'A'}>{p.rol === 'admin' ? 'Administrador' : 'Odontólogo'}</Badge>
+              <div className="muted small">{p.email}{p.id === ctx.userId ? ' · vos' : ''}</div>
+            </div>
+            <button className="btn btn-sm btn-ghost" onClick={() => ctx.openModal({ type: 'perfil', data: { id: p.id } })}>✏️ Editar</button>
+          </div>
+        </div>
+      ))}
+
+      <div className="card" style={{ background: 'var(--teal-light)', borderColor: 'var(--teal-light)' }}>
+        <b>Para dar de alta a un doctor:</b>
+        <ol className="small" style={{ margin: '8px 0 0', paddingLeft: 18, lineHeight: 1.7 }}>
+          <li>En Supabase → <b>Authentication → Users → Add user</b>, creá su email + contraseña (marcá "Auto Confirm").</li>
+          <li>Aparece acá automáticamente como <b>Odontólogo</b>. Tocá <b>Editar</b> y ponele el nombre y el rol.</li>
+          <li>Pasale a ese doctor su email y contraseña.</li>
+        </ol>
       </div>
     </div>
   );
